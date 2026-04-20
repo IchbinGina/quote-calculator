@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0"/>
+<title>活動報價計算機</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet"/>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #F5F4F0;
+    --surface: #FFFFFF;
+    --primary: #1A3A2A;
+    --accent: #4A7C59;
+    --accent-light: #E8F2EC;
+    --accent-mid: #C3DEC9;
+    --text: #1A1A18;
+    --text-2: #5C5C58;
+    --text-3: #9C9C96;
+    --border: #E2E0DA;
+    --gold: #B5860D;
+    --gold-bg: #FDF6E3;
+    --danger: #C0392B;
+    --radius: 14px;
+    --radius-sm: 8px;
+  }
+
+  body {
+    font-family: 'Noto Sans TC', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    padding-bottom: 40px;
+  }
+
+  header {
+    background: var(--primary);
+    color: #fff;
+    padding: 20px 20px 18px;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
+  header h1 { font-size: 17px; font-weight: 700; letter-spacing: .03em; }
+  header p  { font-size: 12px; opacity: .6; margin-top: 2px; }
+
+  .container { padding: 16px; max-width: 480px; margin: 0 auto; }
+
+  .card {
+    background: var(--surface);
+    border-radius: var(--radius);
+    padding: 18px;
+    margin-bottom: 12px;
+    border: 1px solid var(--border);
+  }
+
+  .card-title {
+    font-size: 11px; font-weight: 700; letter-spacing: .08em;
+    text-transform: uppercase; color: var(--text-3);
+    margin-bottom: 14px;
+  }
+
+  label {
+    display: block; font-size: 13px; color: var(--text-2);
+    margin-bottom: 6px; font-weight: 500;
+  }
+
+  select, input[type="number"] {
+    width: 100%; height: 46px;
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 0 14px; font-size: 15px;
+    font-family: inherit;
+    background: var(--bg);
+    color: var(--text);
+    appearance: none;
+    -webkit-appearance: none;
+    outline: none;
+    transition: border-color .15s;
+  }
+  select:focus, input:focus { border-color: var(--accent); background: #fff; }
+
+  .select-wrap { position: relative; }
+  .select-wrap::after {
+    content: "▾"; position: absolute; right: 14px; top: 50%;
+    transform: translateY(-50%); color: var(--text-3); pointer-events: none;
+    font-size: 14px;
+  }
+
+  .field { margin-bottom: 14px; }
+  .field:last-child { margin-bottom: 0; }
+
+  .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+  .pax-row { display: grid; grid-template-columns: 1fr auto 1fr; gap: 8px; align-items: end; }
+  .pax-sep { font-size: 18px; color: var(--text-3); text-align: center; padding-bottom: 10px; }
+
+  .calc-btn {
+    width: 100%; height: 52px; background: var(--primary); color: #fff;
+    border: none; border-radius: var(--radius); font-size: 16px;
+    font-weight: 700; font-family: inherit; cursor: pointer;
+    letter-spacing: .04em; margin-top: 4px;
+    transition: opacity .15s, transform .1s;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .calc-btn:active { opacity: .85; transform: scale(.98); }
+
+  /* 結果區 */
+  #result { display: none; }
+
+  .result-meta {
+    background: var(--accent-light); border-radius: var(--radius-sm);
+    padding: 10px 14px; margin-bottom: 12px; font-size: 13px;
+    color: var(--accent); border: 1px solid var(--accent-mid);
+    line-height: 1.6;
+  }
+  .result-meta strong { font-weight: 700; }
+
+  .tier-list { display: flex; flex-direction: column; gap: 10px; margin-bottom: 12px; }
+
+  .tier-card {
+    border-radius: var(--radius); padding: 16px;
+    border: 1.5px solid var(--border);
+    background: var(--surface);
+  }
+  .tier-card.standard {
+    border-color: var(--accent);
+    background: var(--accent-light);
+  }
+
+  .tier-head {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 10px;
+  }
+  .tier-name { font-size: 12px; font-weight: 700; color: var(--text-2); }
+  .tier-card.standard .tier-name { color: var(--accent); }
+  .tier-badge {
+    font-size: 11px; padding: 3px 9px; border-radius: 99px;
+    background: var(--accent); color: #fff; font-weight: 700;
+    display: none;
+  }
+  .tier-card.standard .tier-badge { display: inline-block; }
+
+  .tier-total { font-size: 24px; font-weight: 700; color: var(--text); margin-bottom: 8px; }
+  .tier-card.standard .tier-total { color: var(--primary); }
+
+  .tier-pax-table { width: 100%; border-collapse: collapse; }
+  .tier-pax-table td { font-size: 13px; padding: 3px 0; }
+  .tier-pax-table td:first-child { color: var(--text-2); }
+  .tier-pax-table td:last-child { text-align: right; font-weight: 600; color: var(--text); }
+  .tier-card.standard .tier-pax-table td:last-child { color: var(--accent); }
+
+  /* 成本明細 */
+  .breakdown-card { background: var(--surface); border-radius: var(--radius); border: 1px solid var(--border); overflow: hidden; }
+  .breakdown-header {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 14px 16px; cursor: pointer; -webkit-tap-highlight-color: transparent;
+  }
+  .breakdown-header span { font-size: 13px; font-weight: 700; color: var(--text-2); }
+  .breakdown-toggle { font-size: 14px; color: var(--text-3); transition: transform .2s; }
+  .breakdown-toggle.open { transform: rotate(180deg); }
+  .breakdown-body { display: none; border-top: 1px solid var(--border); }
+  .breakdown-body.open { display: block; }
+  .bk-item {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 10px 16px; border-bottom: 1px solid var(--border); font-size: 13px;
+  }
+  .bk-item:last-child { border-bottom: none; font-weight: 700; background: var(--bg); }
+  .bk-key { color: var(--text-2); }
+  .bk-val { color: var(--text); font-weight: 500; }
+  .bk-item:last-child .bk-val { color: var(--primary); }
+
+  .hint { font-size: 11px; color: var(--text-3); margin-bottom: 8px; }
+
+  .group-size-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+
+  .group-opt {
+    border: 1.5px solid var(--border); border-radius: var(--radius-sm);
+    padding: 8px 4px; text-align: center; cursor: pointer;
+    background: var(--bg); transition: border-color .15s, background .15s;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .group-opt.active {
+    border-color: var(--accent); background: var(--accent-light);
+  }
+  .group-opt-val { font-size: 17px; font-weight: 700; color: var(--text); }
+  .group-opt.active .group-opt-val { color: var(--accent); }
+  .group-opt-lbl { font-size: 10px; color: var(--text-3); margin-top: 2px; }
+  .group-opt.active .group-opt-lbl { color: var(--accent); }
+
+  .group-opt-custom input::placeholder { font-weight: 400; font-size: 13px; color: var(--text-3); }
+    background: #FDF0EF; border: 1px solid #F5C6C3; border-radius: var(--radius-sm);
+    padding: 12px 14px; font-size: 13px; color: var(--danger); margin-top: 8px;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>活動報價計算機</h1>
+  <p>Team Building TW　｜　未稅金額</p>
+</header>
+
+<div class="container">
+
+  <!-- 輸入區 -->
+  <div class="card">
+    <div class="card-title">活動設定</div>
+
+    <div class="field">
+      <label>產品</label>
+      <div class="select-wrap">
+        <select id="product">
+          <option value="黃金比例運動會">黃金比例運動會</option>
+          <option value="團隊大富翁">團隊大富翁</option>
+          <option value="魷魚遊戲">魷魚遊戲</option>
+          <option value="星際奇兵">星際奇兵</option>
+          <option value="God of team">God of team</option>
+          <option value="王者天下">王者天下</option>
+          <option value="赤壁之戰">赤壁之戰</option>
+          <option value="夢想之城">夢想之城</option>
+          <option value="神鬼奇航(水版)">神鬼奇航（水版）</option>
+          <option value="自力造筏">自力造筏</option>
+          <option value="骨牌">骨牌</option>
+          <option value="無人機足球">無人機足球</option>
+          <option value="ESG地球不碳氣">ESG地球不碳氣</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="field">
+      <label>時數</label>
+      <div class="select-wrap">
+        <select id="hours">
+          <option value="3">3 小時（半天）</option>
+          <option value="6">6 小時（全天）</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="field">
+      <label>活動人數</label>
+      <div class="pax-row">
+        <div>
+          <label style="font-size:11px;color:var(--text-3);margin-bottom:4px;">最少</label>
+          <input type="number" id="paxMin" value="80" min="1" max="999" inputmode="numeric"/>
+        </div>
+        <div class="pax-sep">～</div>
+        <div>
+          <label style="font-size:11px;color:var(--text-3);margin-bottom:4px;">最多</label>
+          <input type="number" id="paxMax" value="100" min="1" max="999" inputmode="numeric"/>
+        </div>
+      </div>
+    </div>
+
+    <div class="field">
+      <label>每組人數</label>
+      <div class="hint">建議 10–15 人一組</div>
+      <div class="group-size-row">
+        <div class="group-opt" id="gOpt10" onclick="selectGroupOpt(10)">
+          <div class="group-opt-val">10</div>
+          <div class="group-opt-lbl">人（預設）</div>
+        </div>
+        <div class="group-opt" id="gOpt12" onclick="selectGroupOpt(12)">
+          <div class="group-opt-val">12</div>
+          <div class="group-opt-lbl">人</div>
+        </div>
+        <div class="group-opt" id="gOpt15" onclick="selectGroupOpt(15)">
+          <div class="group-opt-val">15</div>
+          <div class="group-opt-lbl">人</div>
+        </div>
+        <div class="group-opt group-opt-custom" id="gOptCustom" onclick="focusCustom()">
+          <div class="group-opt-val">
+            <input type="number" id="groupSizeCustom" min="5" max="30" inputmode="numeric"
+              placeholder="自訂" style="width:52px;height:28px;text-align:center;padding:0 4px;font-size:15px;border:none;background:transparent;outline:none;font-family:inherit;font-weight:700;color:var(--text);"
+              oninput="onCustomGroupInput(this.value)"/>
+          </div>
+          <div class="group-opt-lbl">人（自訂）</div>
+        </div>
+      </div>
+      <input type="hidden" id="groupSize" value="10"/>
+    </div>
+
+    <div class="field">
+      <label>工作人員費/人</label>
+      <input type="number" id="staffFee" value="2000" min="500" step="500" inputmode="numeric"/>
+    </div>
+
+    <div id="err-msg"></div>
+
+    <button class="calc-btn" onclick="calculate()">計算報價</button>
+  </div>
+
+  <!-- 結果區 -->
+  <div id="result">
+
+    <div id="result-meta" class="result-meta"></div>
+
+    <div class="tier-list" id="tier-list"></div>
+
+    <div class="breakdown-card">
+      <div class="breakdown-header" onclick="toggleBreakdown()">
+        <span>成本明細</span>
+        <span class="breakdown-toggle" id="bd-toggle">▾</span>
+      </div>
+      <div class="breakdown-body" id="bd-body"></div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+function selectGroupOpt(n){
+  document.getElementById('groupSize').value = n;
+  document.getElementById('groupSizeCustom').value = '';
+  ['gOpt10','gOpt12','gOpt15','gOptCustom'].forEach(id=>
+    document.getElementById(id).classList.remove('active'));
+  const map = {10:'gOpt10',12:'gOpt12',15:'gOpt15'};
+  if(map[n]) document.getElementById(map[n]).classList.add('active');
+}
+function focusCustom(){
+  document.getElementById('groupSizeCustom').focus();
+}
+function onCustomGroupInput(val){
+  const n = parseInt(val);
+  ['gOpt10','gOpt12','gOpt15'].forEach(id=>
+    document.getElementById(id).classList.remove('active'));
+  document.getElementById('gOptCustom').classList.add('active');
+  if(n>=5) document.getElementById('groupSize').value = n;
+}
+selectGroupOpt(10);
+
+
+  "黃金比例運動會":10000,"團隊大富翁":15000,"魷魚遊戲":10000,
+  "星際奇兵":15000,"God of team":10000,"王者天下":12000,
+  "赤壁之戰":15000,"夢想之城":8000,"神鬼奇航(水版)":8000,
+  "自力造筏":10000,"骨牌":15000,"無人機足球":10000,"ESG地球不碳氣":15000
+};
+const INST_FULL = {
+  "黃金比例運動會":15000,"團隊大富翁":20000,"魷魚遊戲":15000,
+  "星際奇兵":20000,"God of team":15000,"王者天下":18000,
+  "赤壁之戰":20000,"夢想之城":12000,"神鬼奇航(水版)":10000,
+  "自力造筏":15000,"骨牌":20000,"無人機足球":15000,"ESG地球不碳氣":20000
+};
+const CTRL = {3:2500,6:3000};
+
+function fmt(n){ return Math.round(n).toLocaleString('zh-TW'); }
+
+function compute(product, hours, pax, groupSize, staffFee){
+  const instFee = hours===3 ? INST_HALF[product] : INST_FULL[product];
+  const groups  = Math.ceil(pax/groupSize);
+  const staffN  = Math.ceil(groups/2);
+  const ctrlFee = CTRL[hours];
+  const manpower = instFee + staffN*staffFee + ctrlFee;
+  const transport = 3000 + (staffN+1)*1500;
+  const costSub  = manpower + transport;
+  const misc     = costSub * 0.10;
+  const costTotal= costSub + misc;
+  return {instFee, groups, staffN, staffFee, ctrlFee, manpower, transport, costSub, misc, costTotal, pax};
+}
+
+function calculate(){
+  const product   = document.getElementById('product').value;
+  const hours     = parseInt(document.getElementById('hours').value);
+  const paxMin    = parseInt(document.getElementById('paxMin').value);
+  const paxMax    = parseInt(document.getElementById('paxMax').value);
+  const groupSize = parseInt(document.getElementById('groupSize').value);
+  const staffFee  = parseInt(document.getElementById('staffFee').value);
+  const errEl     = document.getElementById('err-msg');
+
+  errEl.innerHTML = '';
+  if(!paxMin||!paxMax||paxMin<1||paxMax<1){
+    errEl.innerHTML='<div class="err-msg">請輸入有效人數。</div>'; return;
+  }
+  if(paxMin>paxMax){
+    errEl.innerHTML='<div class="err-msg">最少人數不可大於最多人數。</div>'; return;
+  }
+
+  const isRange = paxMin !== paxMax;
+  const midPax  = Math.round((paxMin+paxMax)/2);
+  const dMin    = compute(product,hours,paxMin,groupSize,staffFee);
+  const dMid    = isRange ? compute(product,hours,midPax,groupSize,staffFee) : null;
+  const dMax    = compute(product,hours,paxMax,groupSize,staffFee);
+  const ref     = dMid || dMax;
+
+  // meta
+  const metaEl = document.getElementById('result-meta');
+  metaEl.innerHTML = `
+    <strong>${product}</strong>　${hours} 小時<br>
+    人數 ${isRange ? paxMin+'～'+paxMax : paxMin} 人　每組 ${groupSize} 人
+    → 分 ${ref.groups} 組、關主 ${ref.staffN} 人＋總控 1 人
+  `;
+
+  // tiers
+  const tiers = [
+    {label:'低規',rate:0.60},
+    {label:'標準',rate:0.65,standard:true},
+    {label:'高規',rate:0.70},
+  ];
+  let tilesHTML = '';
+  tiers.forEach(t=>{
+    const q = d => Math.round(d.costTotal/(1-t.rate)/100)*100;
+    const perPax = d => Math.round(q(d)/d.pax/10)*10;
+
+    let paxRows = '';
+    if(isRange){
+      [[paxMin,dMin],[midPax,dMid],[paxMax,dMax]].forEach(([n,d])=>{
+        paxRows += `<tr><td>${n} 人 / 每人</td><td>$${fmt(perPax(d))}</td></tr>`;
+      });
+    } else {
+      paxRows = `<tr><td>每人均價</td><td>$${fmt(perPax(dMax))}</td></tr>`;
+    }
+
+    const totalRange = isRange
+      ? `$${fmt(q(dMin))} ～ $${fmt(q(dMax))}`
+      : `$${fmt(q(dMax))}`;
+
+    tilesHTML += `
+      <div class="tier-card${t.standard?' standard':''}">
+        <div class="tier-head">
+          <span class="tier-name">${t.label}　利潤 ${Math.round(t.rate*100)}%</span>
+          <span class="tier-badge">建議</span>
+        </div>
+        <div class="tier-total">${totalRange}</div>
+        <table class="tier-pax-table"><tbody>${paxRows}</tbody></table>
+      </div>`;
+  });
+  document.getElementById('tier-list').innerHTML = tilesHTML;
+
+  // breakdown
+  const b = ref;
+  document.getElementById('bd-body').innerHTML = `
+    <div class="bk-item"><span class="bk-key">講師費</span><span class="bk-val">$${fmt(b.instFee)}</span></div>
+    <div class="bk-item"><span class="bk-key">關主費（${b.staffN}人 × $${fmt(b.staffFee)}）</span><span class="bk-val">$${fmt(b.staffN*b.staffFee)}</span></div>
+    <div class="bk-item"><span class="bk-key">總控費</span><span class="bk-val">$${fmt(b.ctrlFee)}</span></div>
+    <div class="bk-item"><span class="bk-key">人力費小計</span><span class="bk-val">$${fmt(b.manpower)}</span></div>
+    <div class="bk-item"><span class="bk-key">講師交通費</span><span class="bk-val">$3,000</span></div>
+    <div class="bk-item"><span class="bk-key">工作人員交通（${b.staffN+1}人 × $1,500）</span><span class="bk-val">$${fmt((b.staffN+1)*1500)}</span></div>
+    <div class="bk-item"><span class="bk-key">雜支費（成本小計 × 10%）</span><span class="bk-val">$${fmt(b.misc)}</span></div>
+    <div class="bk-item"><span class="bk-key">成本合計</span><span class="bk-val">$${fmt(b.costTotal)}</span></div>
+  `;
+
+  document.getElementById('result').style.display='block';
+  document.getElementById('result').scrollIntoView({behavior:'smooth',block:'start'});
+}
+
+function toggleBreakdown(){
+  const body = document.getElementById('bd-body');
+  const tog  = document.getElementById('bd-toggle');
+  body.classList.toggle('open');
+  tog.classList.toggle('open');
+}
+</script>
+</body>
+</html>
