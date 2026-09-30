@@ -1,0 +1,84 @@
+{
+  "_說明": "瘋戶外活動報價成本參數（唯一來源）。計算機與 Claude「報價試算」技能都讀這份。金額皆未稅、新台幣。改價只改這裡。",
+  "version": "2026-09-30",
+
+  "margin": { "default": 0.60, "tiers": [
+    { "label": "低規", "rate": 0.60 },
+    { "label": "標準", "rate": 0.65, "standard": true },
+    { "label": "高規", "rate": 0.70 }
+  ]},
+  "taxRate": 0.05,
+  "rounding": { "total": 100, "perPax": 10 },
+
+  "fixed": {
+    "admin":     { "half": 2000, "full": 2500, "_說明": "行政" },
+    "window":    1000,
+    "transport": 6000,
+    "custom":    3000,
+    "misc":      3000,
+    "insurancePerPerson": 50,
+    "_insurance說明": "保險人數 = 學員 + 全部工作人員（講師1 + 關主 + 行政1 + 窗口1）",
+    "badgePerPax": 40
+  },
+
+  "staffDefault": { "groupSize": 12, "groupsPerStaff": 2, "rate": { "half": 2000, "full": 2500 } },
+
+  "products": {
+    "黃金比例運動會": { "instructor": { "half": 10000, "full": 15000 } },
+    "團隊大富翁":     { "instructor": { "half": 15000, "full": 20000 } },
+    "魷魚遊戲":       { "instructor": { "half": 10000, "full": 15000 } },
+    "星際奇兵":       { "instructor": { "half": 15000, "full": 20000 }, "groupSize": 15 },
+    "God of team":    { "instructor": { "half": 10000, "full": 15000 } },
+    "王者天下":       { "instructor": { "half": 12000, "full": 18000 }, "groupSize": 10, "groupsPerStaff": 1, "staffRate": { "half": 3000, "full": 4000 }, "_說明": "每組1位桌長" },
+    "赤壁之戰":       { "instructor": { "half": 15000, "full": 20000 } },
+    "夢想之城":       { "instructor": { "half": 8000,  "full": 12000 } },
+    "神鬼奇航(水版)": { "instructor": { "half": 8000,  "full": 10000 }, "_說明": "水上版保險另計" },
+    "自力造筏":       { "instructor": { "half": 10000, "full": 15000 }, "_說明": "保險另計" },
+    "骨牌":           { "instructor": { "half": 15000, "full": 20000 } },
+    "無人機足球":     { "instructor": { "half": 10000, "full": 15000 } },
+    "ESG地球不碳氣":  { "instructor": { "half": 15000, "full": 20000 } }
+  },
+
+  "refPricing": {
+    "_說明": "秝的參考每人價（未稅）。maxPax=null 表示無上限；lumpMin/lumpMax 為整體報價。低於下限須 Gina 同意。",
+    "團隊大富翁": [
+      { "maxPax": 40,  "minPer": 2000, "maxPer": 2200 },
+      { "maxPax": 100, "minPer": 1500, "maxPer": 1650 },
+      { "maxPax": null, "minPer": 1300, "maxPer": 1500 }
+    ],
+    "魷魚遊戲": [
+      { "maxPax": 40,  "minPer": 2100, "maxPer": 2300 },
+      { "maxPax": 100, "minPer": 1650, "maxPer": 1800 },
+      { "maxPax": null, "minPer": 1350, "maxPer": 1500 }
+    ],
+    "黃金比例運動會": [
+      { "maxPax": 40,  "minPer": 2100, "maxPer": 2300 },
+      { "maxPax": 100, "minPer": 1650, "maxPer": 1800 },
+      { "maxPax": null, "minPer": 1350, "maxPer": 1500 }
+    ],
+    "星際奇兵": [
+      { "maxPax": 20,  "lumpMin": 50000, "lumpMax": 60000 },
+      { "maxPax": 40,  "minPer": 2000, "maxPer": 2300 },
+      { "maxPax": 100, "minPer": 1500, "maxPer": 1800 },
+      { "maxPax": null, "minPer": 1300, "maxPer": 1500 }
+    ],
+    "自力造筏": [
+      { "maxPax": 20,  "lumpMin": 60000, "lumpMax": 80000 },
+      { "maxPax": 40,  "minPer": 2500, "maxPer": 2800 },
+      { "maxPax": 100, "minPer": 2300, "maxPer": 2500 },
+      { "maxPax": null, "minPer": 2000, "maxPer": 2200 }
+    ],
+    "神鬼奇航(水版)": [
+      { "maxPax": 20,  "lumpMin": 60000, "lumpMax": 80000 },
+      { "maxPax": 40,  "minPer": 2300, "maxPer": 2500 },
+      { "maxPax": 100, "minPer": 2100, "maxPer": 2300 },
+      { "maxPax": null, "minPer": 1800, "maxPer": 2000 }
+    ],
+    "骨牌": [
+      { "maxPax": 20,  "lumpMin": 50000, "lumpMax": 60000 },
+      { "maxPax": 40,  "minPer": 2000, "maxPer": 2300 },
+      { "maxPax": 100, "minPer": 1500, "maxPer": 1800 },
+      { "maxPax": null, "minPer": 1300, "maxPer": 1500 }
+    ]
+  }
+}
